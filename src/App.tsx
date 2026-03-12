@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useRef } from 'react';
+import { GoogleGenAI } from "@google/genai";
 import { Upload, Sparkles, Download, RefreshCw, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -38,26 +39,42 @@ export default function App() {
     setError(null);
 
     try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const base64Data = selectedImage.split(',')[1];
+      const mimeType = selectedImage.split(';')[0].split(':')[1];
+
       const prompt = "Transform the subject in this image into a 'DISTORTIFY' style emoji that EXACTLY matches this specific perspective: A perfectly round, 3D glossy head filling the frame. The eyes must be MASSIVE, perfectly circular, and wide-open, occupying at least 60% of the face area, with large black pupils. Above the eyes, there should be two thin, arched eyebrows. At the very bottom of the face, a small, flat, horizontal pill-shaped mouth. The lighting should have a strong white glossy highlight at the top. The perspective should be an extreme fisheye distortion. Maintain the subject's defining features (like ears, hair, or color) but force them into this exact 'huge eyes, tiny mouth, round glossy head' emoji template.";
 
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [
+            {
+              inlineData: {
+                data: base64Data,
+                mimeType: mimeType,
+              },
+            },
+            {
+              text: prompt,
+            },
+          ],
         },
-        body: JSON.stringify({
-          image: selectedImage,
-          prompt: prompt,
-        }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to generate emoji");
+      let foundImage = false;
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          const generatedBase64 = part.inlineData.data;
+          setGeneratedImage(`data:image/png;base64,${generatedBase64}`);
+          foundImage = true;
+          break;
+        }
       }
 
-      setGeneratedImage(data.image);
+      if (!foundImage) {
+        throw new Error("No image was generated. Please try again.");
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to generate emoji. Please try again.");

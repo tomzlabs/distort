@@ -5,7 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
-import { Upload, Sparkles, Download, RefreshCw, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { Upload, Sparkles, Download, RefreshCw, Image as ImageIcon, AlertCircle, Twitter, Copy, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -13,7 +13,16 @@ export default function App() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const CA = "0x4b1890d41e3f5d978a046b826867bf748e974444";
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(CA);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,8 +112,18 @@ export default function App() {
           </div>
           <h1 className="text-2xl font-bold tracking-tight">DISTORTIFY</h1>
         </div>
-        <div className="text-xs font-mono text-white/40 uppercase tracking-widest hidden sm:block">
-          Emoji Style Generator v1.0
+        <div className="flex items-center gap-6">
+          <div className="text-xs font-mono text-white/40 uppercase tracking-widest hidden lg:block">
+            Emoji Style Generator v1.0
+          </div>
+          <a 
+            href="https://x.com/okmetom/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-all text-white/60 hover:text-white"
+          >
+            <Twitter className="w-5 h-5" />
+          </a>
         </div>
       </header>
 
@@ -264,9 +283,33 @@ export default function App() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="mt-20 p-12 border-t border-white/5 text-center text-white/20 text-sm">
-        <p>© 2026 DISTORTIFY. Powered by Gemini 2.5 Flash Image.</p>
+      {/* Footer / CA Section */}
+      <footer className="max-w-5xl mx-auto p-6 pb-12">
+        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-mono text-white/40 uppercase tracking-wider">Contract Address</span>
+            <span className="text-sm font-mono text-emerald-400 break-all">{CA}</span>
+          </div>
+          <button 
+            onClick={copyToClipboard}
+            className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-sm font-semibold whitespace-nowrap"
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4 text-emerald-500" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4" />
+                <span>Copy CA</span>
+              </>
+            )}
+          </button>
+        </div>
+        <div className="mt-8 text-center text-white/20 text-xs">
+          © 2026 DISTORTIFY. All rights reserved.
+        </div>
       </footer>
     </div>
   );
